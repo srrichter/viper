@@ -1,9 +1,10 @@
+import argparse
 import os
 import csv
-import argparse
 import pathlib
-import zipfile
+import platform
 import shutil
+import zipfile
 
 """'Prepare submission files for the VIPER benchmark ("https://playing-for-benchmarks.org").'"""
 
@@ -210,7 +211,7 @@ def finalize_flow_submission(path, outpath):
 		files = [path / (f + '.flo') for f in _get_flow_test_frames()]
 		
 		submission_path = outpath if outpath is not None else (path / 'flow_submission.bin')
-		if encode(submission_path, pathlib.Path('./encode_flow_submission'), path):
+		if encode(submission_path, pathlib.Path(f'./{platform.system().lower()}') / 'encode_flow_submission', path):
 			print('Ok')
 			print('Submission file is "%s". Please upload it at "https://playing-for-benchmarks.org"' % submission_path)
 		else:
@@ -228,20 +229,20 @@ def check_depth_submission(path):
 	"""Checks if all files required for the submission exist and are in the right format."""
 
 	ready_for_submission = True
-	ready_for_submission = ready_for_submission and _check_frames(path, _get_test_frame_paths('.pfm'))
+	ready_for_submission = ready_for_submission and _check_frames(path, _get_test_frame_paths(path, '.pfm'))
 	return ready_for_submission
 
 
 def finalize_depth_submission(path, outpath):
 	"""Creates a submittable file for optical flow segmentations."""
 
-	if check_flow_submission(path):
+	if check_depth_submission(path):
 		print('Preparing submission ...', end='', flush=True)
 		
-		files = _get_test_frame_paths('.pfm')
+		files = _get_test_frame_paths(path, '.pfm')
 		
 		submission_path = outpath if outpath is not None else (path / 'depth_submission.bin')
-		if encode(submission_path, pathlib.Path('./encode_depth_submission'), path):
+		if encode(submission_path, pathlib.Path(f'./{platform.system().lower()}') / 'encode_depth_submission', path):
 			print('Ok')
 			print('Submission file is "%s". Please upload it at "https://playing-for-benchmarks.org"' % submission_path)
 		else:
@@ -307,6 +308,10 @@ if __name__ == '__main__':
 	p.add_argument('path', type=pathlib.Path, help='Folder containing all files to be included in the submission.')
 	p.add_argument('-o', '--out', type=pathlib.Path, help='Output path to submission file.', default=None)
 	args = p.parse_args()
+
+	if args.task in ['flow', 'depth']:
+		assert platform.system().lower() in ['darwin', 'linux'], f'{platform.system().lower()} is not supported for submitting depth and flow results. Please use MacOS (darwin) or Ubuntu (linux) instead.'
+		pass
 
 	task2func[args.task](args.path, args.out)
 	pass
