@@ -9,9 +9,10 @@ import zipfile
 """'Prepare submission files for the VIPER benchmark ("https://playing-for-benchmarks.org").'"""
 
 
-def _get_flow_test_frames():
+
+def _get_test_frames(task):
 	frames = []
-	with open('flow_frames.txt') as fin:
+	with open(f'./testframes/{task}_frames.txt') as fin:
 		for line in fin:
 			frames.append(line.strip())
 			pass
@@ -19,12 +20,8 @@ def _get_flow_test_frames():
 	return sorted(frames)
 
 
-def _get_test_frames():
-	return _get_flow_test_frames() + ['005_00025', '022_02193', '023_00991', '042_00485', '048_00500', '053_00935']
-
-
-def _get_test_frame_paths(path, ext):
-	return [path / (f + ext) for f in _get_test_frames()]
+def _get_test_frame_paths(task, path, ext):
+	return [path / (f + ext) for f in _get_test_frames(task)]
 
 
 def _get_instance_clsids():
@@ -56,7 +53,7 @@ def zip(outpath, files):
 	pass
 
 	
-def _check_frames(path, frame_paths):
+def _check_frames(frame_paths):
 
 	print('Checking for frames ...', end='',  flush=True)
 	missing = [p for p in frame_paths if not p.exists()]
@@ -79,7 +76,7 @@ def check_cls_submission(path):
 	"""Checks if all files required for the submission exist and are in the right format."""
 
 	ready_for_submission = True
-	ready_for_submission = ready_for_submission and _check_frames(path, _get_test_frame_paths(path, '.png'))
+	ready_for_submission = ready_for_submission and _check_frames(_get_test_frame_paths('cls', path, '.png'))
 	return ready_for_submission
 
 
@@ -158,7 +155,7 @@ def check_inst_submission(path):
 	
 	print('Checking for frames ... ', end='',  flush=True)
 	missing = [p for f,ps in frames.items() for p in ps if not p.exists()]
-		
+
 	if not missing:
 		print('Ok')
 		return True, frames
@@ -198,7 +195,7 @@ def check_flow_submission(path):
 	"""Checks if all files required for the submission exist and are in the right format."""
 
 	ready_for_submission = True
-	ready_for_submission = ready_for_submission and _check_frames(path, [path / (f + '.flo') for f in _get_flow_test_frames()])
+	ready_for_submission = ready_for_submission and _check_frames(_get_test_frame_paths('flow', path, '.flo'))
 	return ready_for_submission
 
 
@@ -208,7 +205,7 @@ def finalize_flow_submission(path, outpath):
 	if check_flow_submission(path):
 		print('Preparing submission ...', end='', flush=True)
 		
-		files = [path / (f + '.flo') for f in _get_flow_test_frames()]
+		files = _get_test_frame_paths('flow', path, '.flo')
 		
 		submission_path = outpath if outpath is not None else (path / 'flow_submission.bin')
 		if encode(submission_path, pathlib.Path(f'./{platform.system().lower()}') / 'encode_flow_submission', path):
@@ -229,7 +226,7 @@ def check_depth_submission(path):
 	"""Checks if all files required for the submission exist and are in the right format."""
 
 	ready_for_submission = True
-	ready_for_submission = ready_for_submission and _check_frames(path, _get_test_frame_paths(path, '.pfm'))
+	ready_for_submission = ready_for_submission and _check_frames(_get_test_frame_paths('depth', path, '.pfm'))
 	return ready_for_submission
 
 
@@ -239,7 +236,7 @@ def finalize_depth_submission(path, outpath):
 	if check_depth_submission(path):
 		print('Preparing submission ...', end='', flush=True)
 		
-		files = _get_test_frame_paths(path, '.pfm')
+		files = _get_test_frame_paths('depth', path, '.pfm')
 		
 		submission_path = outpath if outpath is not None else (path / 'depth_submission.bin')
 		if encode(submission_path, pathlib.Path(f'./{platform.system().lower()}') / 'encode_depth_submission', path):
@@ -274,7 +271,7 @@ def check_pano_submission(path):
 		pass
 	pass
 
-	ready_for_submission = ready_for_submission and _check_frames(path, _get_test_frame_paths(path, '.png'))
+	ready_for_submission = ready_for_submission and _check_frames(_get_test_frame_paths('pano', path, '.png'))
 	
 	return ready_for_submission
 
@@ -285,7 +282,7 @@ def finalize_pano_submission(path, outpath):
 	if check_pano_submission(path):
 		print('Preparing submission ...', end='', flush=True)
 		
-		files = [path / 'predictions.json'] + _get_test_frame_paths(path, '.png')
+		files = [path / 'predictions.json'] + _get_test_frame_paths('pano', path, '.png')
 		
 		submission_path = outpath if outpath is not None else (path / 'pano_submission.zip')
 		zip(submission_path, files)
