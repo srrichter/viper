@@ -33,3 +33,7 @@ We provide bounding boxes in 2D (on the image plane) and in 3D (in camera coordi
 The annotations are stored as one CSV file per frame. 
 Each row in one of the files corresponds to a single object instance.
 The format for the columns is classID, instanceID, 2D bounding box (4 values), 3D bounding box in model coordinate frame (6 values), matrix to transform 3D bounding box into camera coordinate frame (16 values).
+
+### Optical flow (flow)
+The training and validation flow is stored as 16bit float Numpy npz format. For making a submission, we are expecting the Middlebury flo format, though. While the required conversion may be somewhat inconvenient, this approach enables a decent compression of the flow files as well as a standard format for evaluation. For making an optical flow submission, you currently need a Ubuntu system to run the encode_flow_submission app as part of the prepare_submission.py script.
+
