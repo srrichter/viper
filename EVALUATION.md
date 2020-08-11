@@ -73,7 +73,7 @@ submission.bin
 which you can submit to our servers for evaluating your predictions.
 The submission.bin file will be ~400MB large.
 
-
+Note that the corresponding image archives available on the download page may contain some single views for which no second view exists (e.g. in sequence 005). We don't expect you to compute optical flow for these frames.
 
 
 ### Visual Odometry
